@@ -51,27 +51,29 @@ class JSONReader(BaseReader):
         self.levels_back = levels_back
 
     def load_data(
-        self, 
-        file: Path, 
-        extra_info: Optional[Dict] = None
+        self, file: Path, extra_info: Optional[Dict] = None
     ) -> List[Document]:
         """Load data from the input file."""
-        # TODO: change Path typing for file in all load_data calls
         if not isinstance(file, Path):
             file = Path(file)
         with open(file, "r") as f:
             data = json.load(f)
-            if self.levels_back is None:
-                # If levels_back isn't set, we just format and make each
-                # line an embedding
-                json_output = json.dumps(data, indent=0)
-                lines = json_output.split("\n")
-                useful_lines = [
-                    line for line in lines if not re.match(r"^[{}\[\],]*$", line)
-                ]
-                return [Document("\n".join(useful_lines), extra_info=extra_info)]
-            elif self.levels_back is not None:
-                # If levels_back is set, we make the embeddings contain the labels
-                # from further up the JSON tree
-                lines = [*_depth_first_yield(data, self.levels_back, [])]
-                return [Document("\n".join(lines), extra_info=extra_info)]
+            documents = []
+            for json_object in data:
+                if self.levels_back is None:
+                    json_output = json.dumps(json_object, indent=0)
+                    lines = json_output.split("\n")
+                    useful_lines = [
+                        line for line in lines if not re.match(r"^[{}\\[\\],]*$", line)
+                    ]
+                    documents.append(
+                        Document(
+                            text="\n".join(useful_lines), extra_info=extra_info or {}
+                        )
+                    )
+                elif self.levels_back is not None:
+                    lines = [*_depth_first_yield(json_object, self.levels_back, [])]
+                    documents.append(
+                        Document(text="\n".join(lines), extra_info=extra_info or {})
+                    )
+            return documents

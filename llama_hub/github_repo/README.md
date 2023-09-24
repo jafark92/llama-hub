@@ -18,7 +18,7 @@ import os
 from llama_index import download_loader
 download_loader("GithubRepositoryReader")
 
-from llama_index.readers.llamahub_modules.github_repo import GithubRepositoryReader, GithubClient
+from llama_hub.github_repo import GithubRepositoryReader, GithubClient
 
 github_client = GithubClient(os.getenv("GITHUB_TOKEN"))
 loader = GithubRepositoryReader(
@@ -57,7 +57,7 @@ import os
 from llama_index import download_loader, GPTVectorStoreIndex
 download_loader("GithubRepositoryReader")
 
-from llama_index.readers.llamahub_modules.github_repo import GithubClient, GithubRepositoryReader
+from llama_hub.github_repo import GithubClient, GithubRepositoryReader
 
 docs = None
 if os.path.exists("docs.pkl"):
@@ -83,5 +83,7 @@ if docs is None:
 
 index = GPTVectorStoreIndex.from_documents(docs)
 
-index.query("Explain each LlamaIndex class?")
+query_engine = index.as_query_engine()
+response = query_engine.query("Explain each LlamaIndex class?")
+print(response)
 ```
