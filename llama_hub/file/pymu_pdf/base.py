@@ -1,4 +1,5 @@
 """Read PDF files using PyMuPDF library."""
+
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -8,6 +9,15 @@ from llama_index.readers.schema.base import Document
 
 class PyMuPDFReader(BaseReader):
     """Read PDF files using PyMuPDF library."""
+
+    def load_data(
+        self,
+        file_path: Union[Path, str],
+        metadata: bool = True,
+        extra_info: Optional[Dict] = None,
+    ) -> List[Document]:
+        """Loads list of documents from PDF file and also accepts extra information in dict format."""
+        return self.load(file_path, metadata=metadata, extra_info=extra_info)
 
     def load(
         self,
@@ -48,7 +58,7 @@ class PyMuPDFReader(BaseReader):
             if not extra_info:
                 extra_info = {}
             extra_info["total_pages"] = len(doc)
-            extra_info["file_path"] = file_path
+            extra_info["file_path"] = str(file_path)
 
             # return list of documents
             return [

@@ -1,9 +1,10 @@
 """News article reader using Newspaper."""
 import logging
-import requests
+from typing import Any, List, Generator
+
 from llama_index.readers.base import BaseReader
 from llama_index.schema import Document
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from importlib.util import find_spec
 
 logger = logging.getLogger(__name__)
 
@@ -15,20 +16,16 @@ class NewsArticleReader(BaseReader):
 
     Args:
         text_mode (bool): Whether to load a text version or HTML version of the content (default=True).
-        use_nlp (bool): Whether to use NLP to extract additional summary and keywords (default=False).
+        use_nlp (bool): Whether to use NLP to extract additional summary and keywords (default=True).
         newspaper_kwargs: Additional keyword arguments to pass to newspaper.Article. See
             https://newspaper.readthedocs.io/en/latest/user_guide/quickstart.html#article
     """
 
-    def __init__(self,
-                 text_mode: bool = True,
-                 use_nlp: bool = True,
-                 **newspaper_kwargs: Any
-                 ) -> None:
+    def __init__(
+        self, text_mode: bool = True, use_nlp: bool = True, **newspaper_kwargs: Any
+    ) -> None:
         """Initialize with parameters."""
-        try:
-            import newspaper
-        except ImportError:
+        if find_spec("newspaper") is None:
             raise ImportError(
                 "`newspaper` package not found, please run `pip install newspaper3k`"
             )
@@ -46,11 +43,12 @@ class NewsArticleReader(BaseReader):
             List[Document]: List of documents.
 
         """
-        if not isinstance(urls, list):
-            raise ValueError("urls must be a list of strings.")
+        if not isinstance(urls, list) and not isinstance(urls, Generator):
+            raise ValueError("urls must be a list or generator.")
         documents = []
         for url in urls:
             from newspaper import Article
+
             try:
                 article = Article(url, **self.newspaper_kwargs)
                 article.download()

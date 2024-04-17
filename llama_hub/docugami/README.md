@@ -18,14 +18,14 @@ from llama_index import download_loader
 
 DocugamiReader = download_loader('DocugamiReader')
 
-docset_id="ecxqpipcoe2p"
-document_ids=["43rj0ds7s0ur", "bpc1vibyeke2"]
+docset_id="tjwrr2ekqkc3"
+document_ids=["ui7pkriyckwi", "1be3o7ch10iy"]
 
 loader = DocugamiReader()
 documents = loader.load_data(docset_id=docset_id, document_ids=document_ids)
 ```
 
-This loader is designed to be used as a way to load data into [LlamaIndex](https://github.com/jerryjliu/gpt_index/tree/main/gpt_index) and/or subsequently used as a Tool in a [LangChain](https://github.com/hwchase17/langchain) Agent. See [here](https://github.com/emptycrown/llama-hub/tree/main) for examples.
+This loader is designed to be used as a way to load data into [LlamaIndex](https://github.com/run-llama/llama_index/tree/main/llama_index) and/or subsequently used as a Tool in a [LangChain](https://github.com/hwchase17/langchain) Agent. See [here](https://github.com/emptycrown/llama-hub/tree/main) for examples.
 
 See more information about how to use Docugami with LangChain in the [LangChain docs](https://python.langchain.com/docs/ecosystem/integrations/docugami).
 

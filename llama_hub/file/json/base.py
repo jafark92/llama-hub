@@ -2,8 +2,8 @@
 
 import json
 import re
-from typing import Dict, Generator, List, Optional
 from pathlib import Path
+from typing import Dict, Generator, List, Optional
 
 from llama_index.readers.base import BaseReader
 from llama_index.readers.schema.base import Document
@@ -50,30 +50,65 @@ class JSONReader(BaseReader):
         super().__init__()
         self.levels_back = levels_back
 
+    def _parse_jsonobj_to_document(
+        self, json_data_object: Dict, extra_info: Optional[Dict] = None
+    ) -> Document:
+        """Parse the json object into a Document.
+
+        Args:
+            json_data_object: The Json Object to be converted.
+            extra_info (Optional[Dict]): Additional information. Default is None.
+
+        Returns:
+            Document: The document.
+        """
+        if self.levels_back is None:
+            json_output = json.dumps(json_data_object, indent=0)
+            lines = json_output.split("\n")
+            useful_lines = [
+                line for line in lines if not re.match(r"^[{}\\[\\],]*$", line)
+            ]
+            return Document(text="\n".join(useful_lines), extra_info=extra_info or {})
+
+        else:
+            lines = [*_depth_first_yield(json_data_object, self.levels_back, [])]
+            return Document(text="\n".join(lines), extra_info=extra_info or {})
+
     def load_data(
-        self, file: Path, extra_info: Optional[Dict] = None
+        self,
+        file: Path,
+        is_jsonl: Optional[bool] = False,
+        extra_info: Optional[Dict] = None,
     ) -> List[Document]:
-        """Load data from the input file."""
+        """Load data from the input file.
+
+        Args:
+            file (Path): Path to the input file.
+            is_jsonl (Optional[bool]): If True, indicates that the file is in JSONL format. Defaults to False.
+            extra_info (Optional[Dict]): Additional information. Default is None.
+
+        Returns:
+            List[Document]: List of documents.
+        """
         if not isinstance(file, Path):
             file = Path(file)
         with open(file, "r") as f:
-            data = json.load(f)
+            data = []
+            if is_jsonl:
+                for line in f:
+                    data.append(json.loads(line.strip()))
+            else:
+                data = json.load(f)
             documents = []
-            for json_object in data:
-                if self.levels_back is None:
-                    json_output = json.dumps(json_object, indent=0)
-                    lines = json_output.split("\n")
-                    useful_lines = [
-                        line for line in lines if not re.match(r"^[{}\\[\\],]*$", line)
-                    ]
+
+            # For a dictionary JSON object, pass the entire data to be parsed as document
+            if isinstance(data, dict):
+                documents.append(self._parse_jsonobj_to_document(data, extra_info))
+            # For a List or Non-Dictionary JSON object loop through and pass each item
+            else:
+                for json_object in data:
                     documents.append(
-                        Document(
-                            text="\n".join(useful_lines), extra_info=extra_info or {}
-                        )
+                        self._parse_jsonobj_to_document(json_object, extra_info)
                     )
-                elif self.levels_back is not None:
-                    lines = [*_depth_first_yield(json_object, self.levels_back, [])]
-                    documents.append(
-                        Document(text="\n".join(lines), extra_info=extra_info or {})
-                    )
+
             return documents

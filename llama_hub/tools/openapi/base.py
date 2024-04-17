@@ -2,10 +2,11 @@
 
 from typing import List, Optional
 
+import requests
+
 from llama_index.readers.schema.base import Document
 from llama_index.tools.tool_spec.base import BaseToolSpec
-import requests
-import yaml
+
 
 class OpenAPIToolSpec(BaseToolSpec):
     """OpenAPI Tool
@@ -17,13 +18,15 @@ class OpenAPIToolSpec(BaseToolSpec):
     spec_functions = ["load_openapi_spec"]
 
     def __init__(self, spec: Optional[dict] = None, url: Optional[str] = None):
+        import yaml
+
         if spec and url:
             raise ValueError("Only provide one of OpenAPI dict or url")
         elif spec:
             pass
         elif url:
             response = requests.get(url).text
-            spec = yaml.load(response, Loader=yaml.Loader)
+            spec = yaml.safe_load(response)
         else:
             raise ValueError("You must provide a url or OpenAPI spec as a dict")
 
@@ -72,7 +75,7 @@ class OpenAPIToolSpec(BaseToolSpec):
 
         def dereference_openapi(openapi_doc):
             """Dereferences a Swagger/OpenAPI document by resolving all $ref pointers."""
-            try: 
+            try:
                 import jsonschema
             except ImportError:
                 raise ImportError(

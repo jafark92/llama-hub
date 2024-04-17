@@ -10,11 +10,11 @@ This tool has more extensive example usage documented in a Jupyter notebook [her
 Here's an example usage of the OpenAPIToolSpec.
 
 ```python
-from llama_hub.tools.openapi.base import OpenAPIToolSpec
+from llama_hub.tools.openapi import OpenAPIToolSpec
 from llama_index.agent import OpenAIAgent
 
 f = requests.get('https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml').text
-open_api_spec = yaml.load(f, Loader=yaml.Loader)
+open_api_spec = yaml.safe_load(f)
 # OR
 open_spec = OpenAPIToolSpec(url='https://raw.githubusercontent.com/APIs-guru/openapi-directory/main/APIs/openai.com/1.2.0/openapi.yaml')
 

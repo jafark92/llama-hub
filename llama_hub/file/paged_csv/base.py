@@ -3,6 +3,7 @@
 A parser for tabular data files.
 
 """
+
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -16,26 +17,28 @@ class PagedCSVReader(BaseReader):
     Displayed each row in an LLM-friendly format on a separate document.
 
     Args:
-        encoding (str): Encoding used to open the file.  
+        encoding (str): Encoding used to open the file.
             utf-8 by default.
     """
 
-    def __init__(
-        self, *args: Any, encoding: str = "utf-8", **kwargs: Any
-    ) -> None:
+    def __init__(self, *args: Any, encoding: str = "utf-8", **kwargs: Any) -> None:
         """Init params."""
         super().__init__(*args, **kwargs)
         self._encoding = encoding
 
     def load_data(
-        self, file: Path, extra_info: Optional[Dict] = None
+        self,
+        file: Path,
+        extra_info: Optional[Dict] = None,
+        delimiter: str = ",",
+        quotechar: str = '"',
     ) -> List[Document]:
         """Parse file."""
         import csv
 
         docs = []
         with open(file, "r", encoding=self._encoding) as fp:
-            csv_reader = csv.DictReader(fp)  # type: ignore
+            csv_reader = csv.DictReader(f=fp, delimiter=delimiter, quotechar=quotechar)  # type: ignore
             for row in csv_reader:
                 docs.append(
                     Document(

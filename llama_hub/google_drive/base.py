@@ -41,7 +41,9 @@ class GoogleDriveReader(BaseReader):
                 "extension": ".docx",
             },
             "application/vnd.google-apps.spreadsheet": {
-                "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "mimetype": (
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ),
                 "extension": ".xlsx",
             },
             "application/vnd.google-apps.presentation": {
@@ -62,8 +64,8 @@ class GoogleDriveReader(BaseReader):
             credentials, pydrive object
         """
         from google.auth.transport.requests import Request
-        from google.oauth2.credentials import Credentials
         from google.oauth2 import service_account
+        from google.oauth2.credentials import Credentials
         from google_auth_oauthlib.flow import InstalledAppFlow
         from pydrive.auth import GoogleAuth
         from pydrive.drive import GoogleDrive
@@ -72,9 +74,9 @@ class GoogleDriveReader(BaseReader):
         creds = None
         if os.path.exists(self.token_path):
             creds = Credentials.from_authorized_user_file(self.token_path, SCOPES)
-        elif os.path.exists(self.service_account_path):
+        elif os.path.exists(self.credentials_path):
             creds = service_account.Credentials.from_service_account_file(
-                self.service_account_path, scopes=SCOPES
+                self.credentials_path, scopes=SCOPES
             )
             gauth = GoogleAuth()
             gauth.credentials = creds
@@ -227,8 +229,9 @@ class GoogleDriveReader(BaseReader):
         """
 
         from io import BytesIO
-        from googleapiclient.http import MediaIoBaseDownload
+
         from googleapiclient.discovery import build
+        from googleapiclient.http import MediaIoBaseDownload
 
         try:
             # Get file details
@@ -284,7 +287,7 @@ class GoogleDriveReader(BaseReader):
                 metadata = {}
 
                 for fileid_meta in fileids_meta:
-                    filename = next(tempfile._get_candidate_names())
+                    filename = fileid_meta[2]
                     filepath = os.path.join(temp_dir, filename)
                     fileid = fileid_meta[0]
                     final_filepath = self._download_file(fileid, filepath)
@@ -305,6 +308,8 @@ class GoogleDriveReader(BaseReader):
                     SimpleDirectoryReader = download_loader("SimpleDirectoryReader")
                 loader = SimpleDirectoryReader(temp_dir, file_metadata=get_metadata)
                 documents = loader.load_data()
+                for doc in documents:
+                    doc.id_ = doc.metadata.get("file id", doc.id_)
 
             return documents
         except Exception as e:

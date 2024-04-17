@@ -11,11 +11,11 @@ This tool has more extensive example usage documented in a Jupyter notebook [her
 import requests
 import yaml
 f = requests.get('https://raw.githubusercontent.com/sisbell/chatgpt-plugin-store/main/manifests/today-currency-converter.oiconma.repl.co.json').text
-manifest = yaml.load(f, Loader=yaml.Loader)
+manifest = yaml.safe_load(f)
 
-from llama_hub.tools.chatgpt_plugin.base import ChatGPTPluginToolSpec
+from llama_hub.tools.chatgpt_plugin import ChatGPTPluginToolSpec
 from llama_index.agent import OpenAIAgent
-from llama_hub.tools.requests.base import RequestsToolSpec
+from llama_hub.tools.requests import RequestsToolSpec
 
 requests_spec = RequestsToolSpec()
 plugin_spec = ChatGPTPluginToolSpec(manifest)
